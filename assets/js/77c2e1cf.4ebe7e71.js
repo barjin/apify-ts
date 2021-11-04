@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[9078],{6241:e=>{e.exports=JSON.parse('{"id":1530,"name":"PuppeteerHandlePageFunctionParam","nextId":1884,"permalink":"/apify-ts/api/apify/interface/PuppeteerHandlePageFunctionParam","previousId":1540}')}}]);

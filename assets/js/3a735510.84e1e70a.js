@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[4726],{2399:e=>{e.exports=JSON.parse('{"id":857,"name":"BasicCrawlerOptions","nextId":980,"permalink":"/apify-ts/api/apify/interface/BasicCrawlerOptions","previousId":2674}')}}]);
