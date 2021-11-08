@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[7829],{6200:e=>{e.exports=JSON.parse('{"id":2105,"name":"DatasetReducer","nextId":952,"permalink":"/apify-ts/api/apify/interface/DatasetReducer","previousId":2110}')}}]);
