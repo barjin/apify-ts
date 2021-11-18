@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[7539],{107:e=>{e.exports=JSON.parse('{"id":1868,"name":"BrowserPlugin","nextId":433,"permalink":"/apify-ts/api/apify/interface/BrowserPlugin","previousId":1814}')}}]);

@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[7201],{5809:s=>{s.exports=JSON.parse('{"id":1724,"name":"Statistics","nextId":2946,"permalink":"/apify-ts/api/apify/class/Statistics","previousId":2838}')}}]);
