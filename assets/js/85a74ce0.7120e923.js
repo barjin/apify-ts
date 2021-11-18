@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[3126],{1641:e=>{e.exports=JSON.parse('{"id":2834,"name":"Snapshotter","nextId":1724,"permalink":"/apify-ts/api/apify/class/Snapshotter","previousId":2567}')}}]);

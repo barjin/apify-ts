@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[6743],{3487:e=>{e.exports=JSON.parse('{"id":2140,"name":"DatasetConsumer","nextId":2145,"permalink":"/apify-ts/api/apify/interface/DatasetConsumer","previousId":2553}')}}]);
