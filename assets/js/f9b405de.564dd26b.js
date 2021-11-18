@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[9380],{650:a=>{a.exports=JSON.parse('{"id":2055,"name":"pushData","nextId":2183,"permalink":"/apify-ts/api/apify/function/pushData","previousId":2517}')}}]);
