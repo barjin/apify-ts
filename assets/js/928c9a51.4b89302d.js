@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[2734],{1293:e=>{e.exports=JSON.parse('{"id":1786,"name":"StatisticPersistedState","nextId":1807,"permalink":"/apify-ts/api/apify/interface/StatisticPersistedState","previousId":2830}')}}]);

@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[4219],{6365:e=>{e.exports=JSON.parse('{"id":471,"name":"MetamorphOptions","nextId":2272,"permalink":"/apify-ts/api/apify/interface/MetamorphOptions","previousId":2282}')}}]);
