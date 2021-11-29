@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[2517],{4221:e=>{e.exports=JSON.parse('{"id":1390,"name":"PlaywrightCrawlerOptions","nextId":1414,"permalink":"/apify-ts/api/apify/interface/PlaywrightCrawlerOptions","previousId":1418}')}}]);

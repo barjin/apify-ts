@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[8301],{6579:a=>{a.exports=JSON.parse('{"id":1428,"name":"PlaywrightHandlePageFunctionParam","nextId":1884,"permalink":"/apify-ts/api/apify/interface/PlaywrightHandlePageFunctionParam","previousId":1414}')}}]);

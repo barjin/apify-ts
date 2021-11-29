@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[2159],{4234:a=>{a.exports=JSON.parse('{"id":443,"name":"CallTaskOptions","nextId":1146,"permalink":"/apify-ts/api/apify/interface/CallTaskOptions","previousId":433}')}}]);
