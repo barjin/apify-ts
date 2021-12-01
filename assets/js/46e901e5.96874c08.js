@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[5783],{6997:i=>{i.exports=JSON.parse('{"id":2668,"name":"ProxyConfigurationFunction","nextId":2671,"permalink":"/apify-ts/api/apify/interface/ProxyConfigurationFunction","previousId":1173}')}}]);

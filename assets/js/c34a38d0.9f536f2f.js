@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[9512],{6353:e=>{e.exports=JSON.parse('{"id":1195,"name":"CheerioHandlePageInputs","nextId":2961,"permalink":"/apify-ts/api/apify/interface/CheerioHandlePageInputs","previousId":1146}')}}]);

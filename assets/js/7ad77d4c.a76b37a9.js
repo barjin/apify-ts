@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[4897],{1380:e=>{e.exports=JSON.parse('{"id":2022,"name":"RequestQueue","nextId":2492,"permalink":"/apify-ts/api/apify/class/RequestQueue","previousId":2321}')}}]);

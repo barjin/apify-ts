@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[4040],{9482:e=>{e.exports=JSON.parse('{"id":2235,"name":"getValue","nextId":2417,"permalink":"/apify-ts/api/apify/function/getValue","previousId":2245}')}}]);

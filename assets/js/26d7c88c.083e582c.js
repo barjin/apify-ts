@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[8957],{173:e=>{e.exports=JSON.parse('{"id":2252,"name":"StorageManagerOptions","nextId":2944,"permalink":"/apify-ts/api/apify/interface/StorageManagerOptions","previousId":1820}')}}]);

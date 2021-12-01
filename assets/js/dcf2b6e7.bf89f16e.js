@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[2406],{6419:e=>{e.exports=JSON.parse('{"id":2231,"name":"openKeyValueStore","nextId":2307,"permalink":"/apify-ts/api/apify/function/openKeyValueStore","previousId":2108}')}}]);
