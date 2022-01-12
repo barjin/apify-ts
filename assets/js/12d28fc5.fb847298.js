@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[6663],{2632:e=>{e.exports=JSON.parse('{"id":1945,"name":"launchPuppeteer","nextId":397,"permalink":"/apify-ts/api/apify/function/launchPuppeteer","previousId":1894}')}}]);
