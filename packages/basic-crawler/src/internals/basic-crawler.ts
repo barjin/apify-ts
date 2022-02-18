@@ -10,7 +10,6 @@ import {
     CrawlerHandleFailedRequestInput,
     enqueueLinks,
     events,
-    openSessionPool,
     ProxyInfo,
     QueueOperationInfo,
     Request,
@@ -25,17 +24,17 @@ import {
     RequestOptions,
     RequestQueueOperationOptions,
     addRequestsToQueueInBatches,
-    createRequests,
+    createRequests, Configuration,
 } from '@crawlers/core';
 import ow, { ArgumentError } from 'ow';
 
 export interface BasicCrawlerCrawlingContext extends CrawlingContext {
-    crawler: BasicCrawler<BasicCrawlerCrawlingContext>;
+    crawler: BasicCrawler;
     enqueueLinks: (options: BasicCrawlerEnqueueLinksOptions) => Promise<QueueOperationInfo[]>;
 }
 
 export interface BasicCrawlerHandleFailedRequestInput extends CrawlerHandleFailedRequestInput {
-    crawler: BasicCrawler<BasicCrawlerCrawlingContext>;
+    crawler: BasicCrawler;
 }
 
 export type BasicCrawlerEnqueueLinksOptions = Omit<EnqueueLinksOptions, 'requestQueue'>
@@ -310,7 +309,7 @@ export class BasicCrawler<
     /**
      * All `BasicCrawler` parameters are passed via an options object.
      */
-    constructor(options: BasicCrawlerOptions<Context, ErrorContext>) {
+    constructor(options: BasicCrawlerOptions<Context, ErrorContext>, readonly config = Configuration.getGlobalConfig()) {
         ow(options, 'BasicCrawlerOptions', ow.object.exactShape(BasicCrawler.optionsShape));
 
         const {
@@ -475,10 +474,10 @@ export class BasicCrawler<
         // Initialize AutoscaledPool before awaiting _loadHandledRequestCount(),
         // so that the caller can get a reference to it before awaiting the promise returned from run()
         // (otherwise there would be no way)
-        this.autoscaledPool = new AutoscaledPool(this.autoscaledPoolOptions);
+        this.autoscaledPool = new AutoscaledPool(this.autoscaledPoolOptions, this.config);
 
         if (this.useSessionPool) {
-            this.sessionPool = await openSessionPool(this.sessionPoolOptions);
+            this.sessionPool = await SessionPool.open(this.sessionPoolOptions);
             // Assuming there are not more than 20 browsers running at once;
             this.sessionPool.setMaxListeners(20);
         }

@@ -3,7 +3,6 @@ import { ENV_VARS, INTEGER_ENV_VARS } from '@apify/consts';
 import log from '@apify/log';
 import { ActorRun as ClientActorRun, ActorStartOptions, ApifyClient, ApifyClientOptions, TaskStartOptions, Webhook, WebhookEventType } from 'apify-client';
 import {
-    ActorRunWithOutput,
     Awaitable,
     Configuration,
     ConfigurationOptions,
@@ -14,23 +13,19 @@ import {
     initializeEvents,
     IStorage,
     KeyValueStore,
-    logSystemInfo,
-    printOutdatedSdkWarning,
     ProxyConfiguration,
     ProxyConfigurationOptions,
     RecordOptions,
     RequestList,
     RequestListOptions,
     RequestQueue,
-    SessionPool,
-    SessionPoolOptions,
     sleep,
     snakeCaseToCamelCase,
     Source,
     stopEvents,
     StorageManager,
-    StorageManagerOptions,
 } from '@crawlers/core';
+import { logSystemInfo, printOutdatedSdkWarning } from './utils';
 
 /**
  * `Apify` class serves as an alternative approach to the static helpers exported from the package. It allows to pass configuration
@@ -51,7 +46,7 @@ export class Actor {
     constructor(options: ConfigurationOptions = {}) {
         // use default configuration object if nothing overridden (it fallbacks to env vars)
         this.config = Object.keys(options).length === 0 ? Configuration.getGlobalConfig() : new Configuration(options);
-        this.apifyClient = this.config.getClient();
+        this.apifyClient = this.newClient();
     }
 
     /**
@@ -144,16 +139,27 @@ export class Actor {
     /**
      * @ignore
      */
-    start(): void {
-        // TODO use client as store if at home
+    start(options?: { forceCloud?: boolean }): void {
         logSystemInfo();
         printOutdatedSdkWarning();
         initializeEvents();
+
+        const isLocal = !!(this.config.get('localStorageDir') && !options?.forceCloud);
+
+        if (!isLocal) {
+            this.config.useStorageClient(this.apifyClient);
+        }
     }
 
+    /**
+     * @ignore
+     */
     exit(options: ExitOptions = {}): void {
         stopEvents();
-        process.exit(options.exitCode ?? EXIT_CODES.SUCCESS);
+
+        if (options.exit ?? true) {
+            process.exit(options.exitCode ?? EXIT_CODES.SUCCESS);
+        }
     }
 
     /**
@@ -362,14 +368,14 @@ export class Actor {
      * @ignore
      */
     async openDataset<Data extends Dictionary = Dictionary>(
-        datasetIdOrName?: string | null, options: Omit<StorageManagerOptions, 'config'> = {},
+        datasetIdOrName?: string | null, options: OpenStorageOptions = {},
     ): Promise<Dataset<Data>> {
         ow(datasetIdOrName, ow.optional.string);
         ow(options, ow.object.exactShape({
             forceCloud: ow.optional.boolean,
         }));
 
-        return this._getStorageManager<Dataset<Data>>(Dataset).openStorage(datasetIdOrName, options);
+        return this._openStorage<Dataset<Data>>(Dataset, datasetIdOrName, options);
     }
 
     /**
@@ -489,13 +495,13 @@ export class Actor {
      * @param [options]
      * @ignore
      */
-    async openKeyValueStore(storeIdOrName?: string | null, options: Omit<StorageManagerOptions, 'config'> = {}): Promise<KeyValueStore> {
+    async openKeyValueStore(storeIdOrName?: string | null, options: OpenStorageOptions = {}): Promise<KeyValueStore> {
         ow(storeIdOrName, ow.optional.string);
         ow(options, ow.object.exactShape({
             forceCloud: ow.optional.boolean,
         }));
 
-        return this._getStorageManager(KeyValueStore).openStorage(storeIdOrName, options);
+        return this._openStorage(KeyValueStore, storeIdOrName, options);
     }
 
     /**
@@ -573,27 +579,13 @@ export class Actor {
      * @param [options]
      * @ignore
      */
-    async openRequestQueue(queueIdOrName?: string | null, options: Omit<StorageManagerOptions, 'config'> = {}): Promise<RequestQueue> {
+    async openRequestQueue(queueIdOrName?: string | null, options: OpenStorageOptions = {}): Promise<RequestQueue> {
         ow(queueIdOrName, ow.optional.string);
         ow(options, ow.object.exactShape({
             forceCloud: ow.optional.boolean,
         }));
 
-        return this._getStorageManager(RequestQueue).openStorage(queueIdOrName, options);
-    }
-
-    /**
-     * Opens a SessionPool and returns a promise resolving to an instance
-     * of the {@link SessionPool} class that is already initialized.
-     *
-     * For more details and code examples, see the {@link SessionPool} class.
-     * @ignore
-     */
-    async openSessionPool(sessionPoolOptions?: SessionPoolOptions): Promise<SessionPool> {
-        const sessionPool = new SessionPool(sessionPoolOptions, this.config);
-        await sessionPool.initialize();
-
-        return sessionPool;
+        return this._openStorage(RequestQueue, queueIdOrName, options);
     }
 
     /**
@@ -690,7 +682,11 @@ export class Actor {
      * @ignore
      */
     newClient(options: ApifyClientOptions = {}): ApifyClient {
-        return this.config.createClient(options);
+        return new ApifyClient({
+            baseUrl: this.config.get('apiBaseUrl'),
+            token: this.config.get('token'),
+            ...options, // allow overriding the instance configuration
+        });
     }
 
     /**
@@ -766,6 +762,14 @@ export class Actor {
      */
     static main(userFunc: UserFunc): void {
         return Actor.getDefaultInstance().main(userFunc);
+    }
+
+    static start(options?: { forceCloud?: boolean }): void {
+        return Actor.getDefaultInstance().start(options);
+    }
+
+    static exit(options: ExitOptions = {}): void {
+        return Actor.getDefaultInstance().exit(options);
     }
 
     /**
@@ -920,7 +924,7 @@ export class Actor {
      * @param [options]
      */
     static async openDataset<Data extends Dictionary = Dictionary>(
-        datasetIdOrName?: string | null, options: Omit<StorageManagerOptions, 'config'> = {},
+        datasetIdOrName?: string | null, options: OpenStorageOptions = {},
     ): Promise<Dataset<Data>> {
         return Actor.getDefaultInstance().openDataset(datasetIdOrName, options);
     }
@@ -1036,7 +1040,7 @@ export class Actor {
      *   the function returns the default key-value store associated with the actor run.
      * @param [options]
      */
-    static async openKeyValueStore(storeIdOrName?: string | null, options: Omit<StorageManagerOptions, 'config'> = {}): Promise<KeyValueStore> {
+    static async openKeyValueStore(storeIdOrName?: string | null, options: OpenStorageOptions = {}): Promise<KeyValueStore> {
         return Actor.getDefaultInstance().openKeyValueStore(storeIdOrName, options);
     }
 
@@ -1113,18 +1117,8 @@ export class Actor {
      *   the function returns the default request queue associated with the actor run.
      * @param [options]
      */
-    static async openRequestQueue(queueIdOrName?: string | null, options: Omit<StorageManagerOptions, 'config'> = {}): Promise<RequestQueue> {
+    static async openRequestQueue(queueIdOrName?: string | null, options: OpenStorageOptions = {}): Promise<RequestQueue> {
         return Actor.getDefaultInstance().openRequestQueue(queueIdOrName, options);
-    }
-
-    /**
-     * Opens a SessionPool and returns a promise resolving to an instance
-     * of the {@link SessionPool} class that is already initialized.
-     *
-     * For more details and code examples, see the {@link SessionPool} class.
-     */
-    static async openSessionPool(sessionPoolOptions?: SessionPoolOptions): Promise<SessionPool> {
-        return Actor.getDefaultInstance().openSessionPool(sessionPoolOptions);
     }
 
     /**
@@ -1210,6 +1204,11 @@ export class Actor {
     static getDefaultInstance(): Actor {
         this._instance ??= new Actor();
         return this._instance;
+    }
+
+    private _openStorage<T extends IStorage>(storageClass: Constructor<T>, id?: string, options: OpenStorageOptions = {}) {
+        const client = options.forceCloud ? this.apifyClient : undefined;
+        return this._getStorageManager<T>(storageClass).openStorage(id, client);
     }
 
     private _getStorageManager<T extends IStorage>(storageClass: Constructor<T>): StorageManager<T> {
@@ -1352,6 +1351,40 @@ export interface MetamorphOptions {
 export interface ExitOptions {
     /** Exit code, defaults to 0 */
     exitCode?: number;
+    /** Call `process.exit()`? Defaults to true */
+    exit?: boolean;
+}
+
+export interface OpenStorageOptions {
+    /**
+     * If set to `true` then the cloud storage is used even if the `APIFY_LOCAL_STORAGE_DIR`
+     * environment variable is set. This way it is possible to combine local and cloud storage.
+     * @default false
+     */
+    forceCloud?: boolean;
+}
+
+/**
+ * Represents information about an actor run, as returned by the {@link Actor.call} or {@link Actor.callTask} function.
+ * The object is almost equivalent to the JSON response of the [Actor run](https://apify.com/docs/api/v2#/reference/actors/run-collection/run-actor)
+ * Apify API endpoint and extended with certain fields. For more details, see [Runs.](https://docs.apify.com/actor/run)
+ */
+export interface ActorRunWithOutput extends ClientActorRun {
+    /**
+     * Contains output of the actor run. The value is `null` or `undefined` in case the actor is still running,
+     * or if you pass `false` to the `fetchOutput` option of {@link Actor.call}.
+     *
+     * For example:
+     * ```
+     * {
+     *   "contentType": "application/json; charset=utf-8",
+     *   "body": {
+     *     "message": "Hello world!"
+     *   }
+     * }
+     * ```
+     */
+    output?: Dictionary | null;
 }
 
 export { ClientActorRun as ActorRun };

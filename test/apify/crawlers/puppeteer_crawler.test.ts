@@ -17,7 +17,7 @@ import { promisify } from 'util';
 import { once } from 'events';
 import { AddressInfo } from 'net';
 import { createProxyServer } from '../create-proxy-server';
-import LocalStorageDirEmulator from '../local_storage_dir_emulator';
+import { LocalStorageDirEmulator } from '../local_storage_dir_emulator';
 
 describe('PuppeteerCrawler', () => {
     let prevEnvHeadless: string;

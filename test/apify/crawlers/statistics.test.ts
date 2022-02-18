@@ -1,5 +1,5 @@
 import { Statistics, Dictionary, events, ACTOR_EVENT_NAMES_EX, Configuration } from '@crawlers/core';
-import LocalStorageDirEmulator from '../local_storage_dir_emulator';
+import { LocalStorageDirEmulator } from '../local_storage_dir_emulator';
 
 describe('Statistics', () => {
     const getPerMinute = (jobCount: number, totalTickMillis: number) => {

@@ -1,6 +1,6 @@
-import { SessionPool, openSessionPool, events, Session, entries, KeyValueStore, Configuration, ACTOR_EVENT_NAMES_EX } from '@crawlers/core';
+import { SessionPool, events, Session, entries, KeyValueStore, Configuration, ACTOR_EVENT_NAMES_EX } from '@crawlers/core';
 import { Log } from '@apify/log';
-import LocalStorageDirEmulator from '../local_storage_dir_emulator';
+import { LocalStorageDirEmulator } from '../local_storage_dir_emulator';
 
 describe('SessionPool - testing session pool', () => {
     let sessionPool: SessionPool;
@@ -13,7 +13,7 @@ describe('SessionPool - testing session pool', () => {
     beforeEach(async () => {
         const storageDir = await localStorageEmulator.init();
         Configuration.getGlobalConfig().set('localStorageDir', storageDir);
-        sessionPool = await openSessionPool();
+        sessionPool = await SessionPool.open();
     });
 
     afterEach(async () => {
@@ -58,7 +58,7 @@ describe('SessionPool - testing session pool', () => {
         expect(sessionPool.sessionOptions).toEqual({ ...opts.sessionOptions, log: expect.any(Log) });
     });
 
-    test('should work using openSessionPool', async () => {
+    test('should work using SessionPool.open', async () => {
         const opts = {
             maxPoolSize: 3000,
 
@@ -73,7 +73,7 @@ describe('SessionPool - testing session pool', () => {
             createSessionFunction: () => ({} as never),
 
         };
-        sessionPool = await openSessionPool(opts);
+        sessionPool = await SessionPool.open(opts);
         await sessionPool.teardown();
 
         entries(opts).filter(([key]) => key !== 'sessionOptions').forEach(([key, value]) => {
@@ -85,7 +85,7 @@ describe('SessionPool - testing session pool', () => {
 
     describe('should retrieve session', () => {
         test('should retrieve session with correct shape', async () => {
-            sessionPool = await openSessionPool({ sessionOptions: { maxAgeSecs: 100, maxUsageCount: 10 } });
+            sessionPool = await SessionPool.open({ sessionOptions: { maxAgeSecs: 100, maxUsageCount: 10 } });
             const session = await sessionPool.getSession();
             expect(sessionPool.sessions.length).toBe(1);
             expect(session.id).toBeDefined();
@@ -272,7 +272,7 @@ describe('SessionPool - testing session pool', () => {
     });
 
     test('should restore persisted maxUsageCount of recreated sessions', async () => {
-        sessionPool = await openSessionPool({ maxPoolSize: 1, sessionOptions: { maxUsageCount: 66 } });
+        sessionPool = await SessionPool.open({ maxPoolSize: 1, sessionOptions: { maxUsageCount: 66 } });
         await sessionPool.getSession();
         await sessionPool.persistState();
         const loadedSessionPool = new SessionPool({ maxPoolSize: 1, sessionOptions: { maxUsageCount: 88 } });
@@ -288,7 +288,7 @@ describe('SessionPool - testing session pool', () => {
         const persistStateKey = 'TEST-KEY';
         const persistStateKeyValueStoreId = 'TEST-VALUE-STORE';
 
-        const newSessionPool = await openSessionPool({
+        const newSessionPool = await SessionPool.open({
             maxPoolSize: 1,
             persistStateKeyValueStoreId,
             persistStateKey,
@@ -315,7 +315,7 @@ describe('SessionPool - testing session pool', () => {
             expect(sessionPool2 instanceof SessionPool).toBe(true);
             return new Session({ sessionPool: sessionPool2 });
         };
-        const newSessionPool = await openSessionPool({ createSessionFunction });
+        const newSessionPool = await SessionPool.open({ createSessionFunction });
         const session = await newSessionPool.getSession();
         expect(isCalled).toBe(true);
         expect(session.constructor.name).toBe('Session');

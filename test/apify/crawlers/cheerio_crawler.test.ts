@@ -31,7 +31,7 @@ import {
 } from 'crawlers';
 import { IncomingHttpHeaders, Server } from 'http';
 import { AddressInfo } from 'net';
-import LocalStorageDirEmulator from '../local_storage_dir_emulator';
+import { LocalStorageDirEmulator } from '../local_storage_dir_emulator';
 
 const HOST = '127.0.0.1';
 

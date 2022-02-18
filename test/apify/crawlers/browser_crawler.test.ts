@@ -24,7 +24,7 @@ import {
     createProxyConfiguration,
     requestUtils,
 } from 'crawlers';
-import LocalStorageDirEmulator from '../local_storage_dir_emulator';
+import { LocalStorageDirEmulator } from '../local_storage_dir_emulator';
 import { BrowserCrawlerTest } from './basic_browser_crawler';
 
 describe('BrowserCrawler', () => {

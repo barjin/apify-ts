@@ -4,6 +4,7 @@ import os from 'os';
 import { ACTOR_EVENT_NAMES, ENV_VARS } from '@apify/consts';
 import { Snapshotter, sleep, events, MemoryInfo, Configuration } from '@crawlers/core';
 import log from '@apify/log';
+import { Actor } from 'apify';
 
 const toBytes = (x: number) => x * 1024 * 1024;
 
@@ -24,7 +25,7 @@ describe('Snapshotter', () => {
 
     test('should collect snapshots with some values', async () => {
         // mock client data
-        const apifyClient = Configuration.getDefaultClient();
+        const apifyClient = Configuration.getStorageClient();
         const oldStats = apifyClient.stats;
         apifyClient.stats = {} as never;
         apifyClient.stats.rateLimitErrors = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -103,12 +104,13 @@ describe('Snapshotter', () => {
     });
 
     test('correctly marks CPU overloaded using Platform event', async () => {
-        process.env[ENV_VARS.IS_AT_HOME] = '1';
+        Actor.start({ forceCloud: true }); // TODO move to actor sdk tests
+        process.env[ENV_VARS.IS_AT_HOME] = '1'; // TODO this should not be needed, snapshotter depends on this currently
         let count = 0;
         const emitAndWait = async (delay: number) => {
             events.emit(ACTOR_EVENT_NAMES.SYSTEM_INFO, {
                 isCpuOverloaded: count % 2 === 0,
-                createdAt: (new Date()).toISOString(),
+                createdAt: new Date().toISOString(),
                 cpuCurrentUsage: 66.6,
             });
             count++;
@@ -134,6 +136,8 @@ describe('Snapshotter', () => {
         } finally {
             delete process.env[ENV_VARS.IS_AT_HOME];
         }
+
+        Actor.exit({ exit: false });
     });
 
     test('correctly marks CPU overloaded using OS metrics', () => {
@@ -287,7 +291,7 @@ describe('Snapshotter', () => {
     test('correctly marks clientOverloaded', () => {
         const noop = () => {};
         // mock client data
-        const apifyClient = Configuration.getDefaultClient();
+        const apifyClient = Configuration.getStorageClient();
         const oldStats = apifyClient.stats;
         apifyClient.stats = {} as never;
         apifyClient.stats.rateLimitErrors = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];

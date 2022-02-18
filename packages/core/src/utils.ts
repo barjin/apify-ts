@@ -17,8 +17,6 @@
 // @ts-expect-error We need to add typings for @apify/ps-tree
 import psTree from '@apify/ps-tree';
 import { execSync } from 'child_process';
-// @ts-expect-error if we enable resolveJsonModule, we end up with `src` folder in `dist`
-import { version as apifyClientVersion } from 'apify-client/package.json';
 import { ENV_VARS } from '@apify/consts';
 import cheerio, { load } from 'cheerio';
 import contentTypeParser from 'content-type';
@@ -27,15 +25,12 @@ import mime from 'mime-types';
 import os from 'os';
 import ow from 'ow';
 import path from 'path';
-import semver from 'semver';
 import { URL } from 'url';
 import util from 'util';
 import rimraf from 'rimraf';
 import { IncomingMessage } from 'http';
 import { HTTPResponse as PuppeteerResponse } from 'puppeteer';
 
-// @ts-expect-error if we enable resolveJsonModule, we end up with `src` folder in `dist`
-import { version as apifyVersion } from '../package.json';
 import { log } from './utils_log';
 import { requestAsBrowser } from './utils_request';
 import { Request } from './request';
@@ -72,19 +67,6 @@ const MEMORY_FILE_PATHS = {
 const MEMORY_FILE_ENCODING = 'utf-8';
 
 const psTreePromised = util.promisify(psTree);
-
-/**
- * Logs info about system, node version and apify package version.
- * @internal
- */
-export const logSystemInfo = () => {
-    log.info('System info', {
-        apifyVersion,
-        apifyClientVersion,
-        osType: os.type(),
-        nodeVersion: process.version,
-    });
-};
 
 let isDockerPromiseCache: Promise<boolean>;
 
@@ -503,19 +485,6 @@ export function snakeCaseToCamelCase(snakeCaseStr: string): string {
                 : part;
         })
         .join('');
-}
-
-/**
- * Prints a warning if this version of Apify SDK is outdated.
- * @ignore
- */
-export function printOutdatedSdkWarning() {
-    if (process.env[ENV_VARS.DISABLE_OUTDATED_WARNING]) return;
-    const latestApifyVersion = process.env[ENV_VARS.SDK_LATEST_VERSION];
-    if (!latestApifyVersion || !semver.lt(apifyVersion, latestApifyVersion)) return;
-
-    log.warning(`You are using an outdated version (${apifyVersion}) of Apify SDK. We recommend you to update to the latest version (${latestApifyVersion}).
-         Read more about Apify SDK versioning at: https://help.apify.com/en/articles/3184510-updates-and-versioning-of-apify-sdk`);
 }
 
 /**

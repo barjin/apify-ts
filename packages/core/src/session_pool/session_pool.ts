@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import ow from 'ow';
 import { Log } from '@apify/log';
-import { KeyValueStore, openKeyValueStore } from '../storages/key_value_store';
+import { KeyValueStore } from '../storages/key_value_store';
 import { Session, SessionOptions } from './session';
 import { events } from '../events';
 import { log as defaultLog } from '../utils_log';
@@ -46,15 +46,7 @@ export interface SessionPoolOptions {
      */
     createSessionFunction?: CreateSession;
 
-    /**
-     * If set to `true` then the function uses cloud storage usage even if the `APIFY_LOCAL_STORAGE_DIR`
-     * environment variable is set. This way it is possible to combine local and cloud storage.
-     *
-     * **Note:** If you use `forceCloud`, it is recommended to also set the `persistStateKeyValueStoreId` option, as otherwise the
-     * `KeyValueStore` will be unnamed!
-     * @default false
-     */
-    forceCloud?: boolean;
+    /** @internal */
     log?: Log;
 }
 
@@ -64,7 +56,7 @@ export interface SessionPoolOptions {
  * When some session is marked as blocked, it is removed and new one is created instead (the pool never returns an unusable session).
  * Learn more in the [`Session management guide`](../guides/session-management).
  *
- * You can create one by calling the {@link Apify.openSessionPool} function.
+ * You can create one by calling the {@link SessionPool.open} function.
  *
  * Session pool is already integrated into crawlers, and it can significantly improve your scraper
  * performance with just 2 lines of code.
@@ -87,7 +79,7 @@ export interface SessionPoolOptions {
  * **Advanced usage:**
  *
  * ```javascript
- * const sessionPool = await Apify.openSessionPool({
+ * const sessionPool = await SessionPool.open({
  *     maxPoolSize: 25,
  *     sessionOptions:{
  *          maxAgeSecs: 10,
@@ -123,7 +115,6 @@ export class SessionPool extends EventEmitter {
     keyValueStore!: KeyValueStore;
     sessions: Session[] = [];
     sessionMap = new Map<string, Session>();
-    forceCloud: boolean;
     sessionOptions: SessionOptions;
     persistStateKeyValueStoreId?: string;
     persistStateKey: string;
@@ -142,7 +133,6 @@ export class SessionPool extends EventEmitter {
             createSessionFunction: ow.optional.function,
             sessionOptions: ow.optional.object,
             log: ow.optional.object,
-            forceCloud: ow.optional.boolean,
         }));
 
         const {
@@ -155,8 +145,6 @@ export class SessionPool extends EventEmitter {
             sessionOptions = {},
 
             log = defaultLog,
-
-            forceCloud = false,
         } = options;
 
         this.config = config;
@@ -177,9 +165,6 @@ export class SessionPool extends EventEmitter {
         // Session keyValueStore
         this.persistStateKeyValueStoreId = persistStateKeyValueStoreId;
         this.persistStateKey = persistStateKey;
-
-        // Operative states
-        this.forceCloud = forceCloud;
     }
 
     /**
@@ -198,15 +183,16 @@ export class SessionPool extends EventEmitter {
 
     /**
      * Starts periodic state persistence and potentially loads SessionPool state from {@link KeyValueStore}.
-     * It is called automatically by the {@link Apify.openSessionPool} function.
+     * It is called automatically by the {@link §} function.
      */
     async initialize(): Promise<void> {
-        this.keyValueStore = await openKeyValueStore(this.persistStateKeyValueStoreId, { config: this.config, forceCloud: this.forceCloud });
+        this.keyValueStore = await KeyValueStore.open(this.persistStateKeyValueStoreId, { config: this.config });
 
-        if (this.forceCloud && !this.persistStateKeyValueStoreId) {
-            this.log.warning(`You enabled 'forceCloud' in the session pool options but you haven't specified a 'persistStateKeyValueStoreId'!`);
-            this.log.warning(`This session pool's data has been saved in the KeyValueStore with the id: ${this.keyValueStore.id}`);
-        }
+        // FIXME should we still validate this somehow somewhere?
+        // if (this.forceCloud && !this.persistStateKeyValueStoreId) {
+        //     this.log.warning(`You enabled 'forceCloud' in the session pool options but you haven't specified a 'persistStateKeyValueStoreId'!`);
+        //     this.log.warning(`This session pool's data has been saved in the KeyValueStore with the id: ${this.keyValueStore.id}`);
+        // }
 
         // in case of migration happened and SessionPool state should be restored from the keyValueStore.
         await this._maybeLoadSessionPool();
@@ -427,6 +413,18 @@ export class SessionPool extends EventEmitter {
 
         this.log.debug(`${this.usableSessionsCount} active sessions loaded from KeyValueStore`);
     }
+
+    /**
+     * Opens a SessionPool and returns a promise resolving to an instance
+     * of the {@link SessionPool} class that is already initialized.
+     *
+     * For more details and code examples, see the {@link SessionPool} class.
+     */
+    static async open(sessionPoolOptions?: SessionPoolOptions): Promise<SessionPool> {
+        const sessionPool = new SessionPool(sessionPoolOptions);
+        await sessionPool.initialize();
+        return sessionPool;
+    }
 }
 
 /**
@@ -434,9 +432,8 @@ export class SessionPool extends EventEmitter {
  * of the {@link SessionPool} class that is already initialized.
  *
  * For more details and code examples, see the {@link SessionPool} class.
+ * @deprecated use `SessionPool.open()` instead
  */
 export async function openSessionPool(sessionPoolOptions?: SessionPoolOptions): Promise<SessionPool> {
-    const sessionPool = new SessionPool(sessionPoolOptions);
-    await sessionPool.initialize();
-    return sessionPool;
+    return SessionPool.open(sessionPoolOptions);
 }

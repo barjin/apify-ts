@@ -301,7 +301,7 @@ describe('ProxyConfiguration', () => {
     });
 });
 
-describe('Apify.createProxyConfiguration()', () => {
+describe('Actor.createProxyConfiguration()', () => {
     const userData = { proxy: { password } };
 
     test('should work with all options', async () => {
@@ -341,6 +341,7 @@ describe('Apify.createProxyConfiguration()', () => {
         requestAsBrowserSpy.mockResolvedValueOnce({ body: status } as any);
         getUserSpy.mockResolvedValueOnce(userData as any);
 
+        // FIXME this fails + 2 more tests here, probably another isAtHome?
         const proxyConfiguration = await createProxyConfiguration(opts);
 
         expect(proxyConfiguration).toBeInstanceOf(ProxyConfiguration);

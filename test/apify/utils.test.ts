@@ -18,7 +18,6 @@ import {
     isDocker,
     launchPuppeteer,
     parseContentTypeFromResponse,
-    printOutdatedSdkWarning,
     purgeLocalStorage,
     Request,
     RequestAsBrowserResult,
@@ -29,6 +28,7 @@ import {
     weightedAvg,
 } from 'crawlers';
 import { Actor } from 'apify';
+import { printOutdatedSdkWarning } from 'apify/src/utils';
 import * as htmlToTextData from './data/html_to_text_test_data';
 
 describe('Actor.newClient()', () => {

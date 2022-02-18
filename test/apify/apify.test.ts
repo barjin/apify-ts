@@ -3,8 +3,8 @@ import { ACT_JOB_STATUSES, ENV_VARS, KEY_VALUE_STORE_KEYS, WEBHOOK_EVENT_TYPES }
 import { ApifyClient, WebhookUpdateData, RunClient } from 'apify-client';
 import log from '@apify/log';
 import { Actor, ApifyEnv } from 'apify';
-import { Configuration, RequestList, Dataset, KeyValueStore, StorageManager, ProxyConfiguration, SessionPool, sleep } from '@crawlers/core';
-import LocalStorageDirEmulator from './local_storage_dir_emulator';
+import { Configuration, RequestList, Dataset, KeyValueStore, StorageManager, ProxyConfiguration, sleep } from '@crawlers/core';
+import { LocalStorageDirEmulator } from './local_storage_dir_emulator';
 
 /**
  * Helper function that enables testing of main()
@@ -142,22 +142,23 @@ describe('new Actor({ ... })', () => {
         });
 
         test('respects `localStorageEnableWalMode` option (gh issue #956)', async () => {
-            delete process.env[ENV_VARS.LOCAL_STORAGE_DIR];
-            delete process.env[ENV_VARS.TOKEN];
-
-            const sdk1 = new Actor();
-            const sessionPool1 = await sdk1.openSessionPool();
-            expect(sessionPool1).toBeInstanceOf(SessionPool);
-            const storage1 = sdk1.config.getStorageLocal();
-            expect(storage1.enableWalMode).toBe(true);
-
-            const sdk2 = new Actor({ localStorageEnableWalMode: false });
-            const sessionPool2 = await sdk2.openSessionPool();
-            expect(sessionPool2).toBeInstanceOf(SessionPool);
-            const storage2 = sdk2.config.getStorageLocal();
-            expect(storage2.enableWalMode).toBe(false);
-
-            delete process.env[ENV_VARS.LOCAL_STORAGE_DIR];
+            // FIXME this should be handled via storage options
+            // delete process.env[ENV_VARS.LOCAL_STORAGE_DIR];
+            // delete process.env[ENV_VARS.TOKEN];
+            //
+            // const sdk1 = new Actor();
+            // const sessionPool1 = await sdk1.openSessionPool();
+            // expect(sessionPool1).toBeInstanceOf(SessionPool);
+            // const storage1 = sdk1.config.getStorageLocal();
+            // expect(storage1.enableWalMode).toBe(true);
+            //
+            // const sdk2 = new Actor({ localStorageEnableWalMode: false });
+            // const sessionPool2 = await sdk2.openSessionPool();
+            // expect(sessionPool2).toBeInstanceOf(SessionPool);
+            // const storage2 = sdk2.config.getStorageLocal();
+            // expect(storage2.enableWalMode).toBe(false);
+            //
+            // delete process.env[ENV_VARS.LOCAL_STORAGE_DIR];
         });
 
         test('works with promised user function', async () => {
@@ -257,7 +258,7 @@ describe('new Actor({ ... })', () => {
             const timeout = 60;
             const webhooks = [{ a: 'a' }, { b: 'b' }] as any;
 
-            const newClientSpy = jest.spyOn(Configuration.prototype, 'createClient');
+            const newClientSpy = jest.spyOn(Actor.prototype, 'newClient');
             const callMock = jest.fn();
             callMock.mockResolvedValueOnce(finishedRun);
             const getRecordMock = jest.fn();
@@ -371,7 +372,7 @@ describe('new Actor({ ... })', () => {
         });
 
         test('works with token', async () => {
-            const newClientSpy = jest.spyOn(Configuration.prototype, 'createClient');
+            const newClientSpy = jest.spyOn(Actor.prototype, 'newClient');
             const callMock = jest.fn();
             callMock.mockResolvedValueOnce(finishedRun);
             const getRecordMock = jest.fn();
@@ -571,14 +572,6 @@ describe('new Actor({ ... })', () => {
             delete process.env[ENV_VARS.IS_AT_HOME];
         });
 
-        test('openSessionPool should create SessionPool', async () => {
-            const sdk = new Actor();
-            const initializeSpy = jest.spyOn(SessionPool.prototype, 'initialize');
-            initializeSpy.mockImplementationOnce(async () => {});
-            await sdk.openSessionPool();
-            expect(initializeSpy).toBeCalledTimes(1);
-        });
-
         test('createProxyConfiguration should create ProxyConfiguration', async () => {
             const sdk = new Actor();
             const initializeSpy = jest.spyOn(ProxyConfiguration.prototype, 'initialize');
@@ -663,8 +656,18 @@ describe('new Actor({ ... })', () => {
             const openStorageSpy = jest.spyOn(StorageManager.prototype, 'openStorage');
             openStorageSpy.mockImplementationOnce(async (i) => i);
             await sdk.openRequestQueue(queueId, options);
-            expect(openStorageSpy).toBeCalledWith(queueId, options);
+            expect(openStorageSpy).toBeCalledWith(queueId, sdk.apifyClient);
             expect(openStorageSpy).toBeCalledTimes(1);
+        });
+
+        test('openDataset should open storage', async () => {
+            const datasetName = 'abc';
+            const options = { forceCloud: true };
+            const mockOpenStorage = jest.spyOn(StorageManager.prototype, 'openStorage');
+            mockOpenStorage.mockResolvedValueOnce(jest.fn());
+            await sdk.openDataset(datasetName, options);
+            expect(mockOpenStorage).toBeCalledTimes(1);
+            expect(mockOpenStorage).toBeCalledWith(datasetName, sdk.apifyClient);
         });
 
         test('openRequestQueue works with APIFY_LOCAL_STORAGE_ENABLE_WAL_MODE=false', async () => {

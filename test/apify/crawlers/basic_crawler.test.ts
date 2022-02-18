@@ -17,7 +17,7 @@ import {
     BasicCrawler,
     KeyValueStore,
 } from 'crawlers';
-import LocalStorageDirEmulator from '../local_storage_dir_emulator';
+import { LocalStorageDirEmulator } from '../local_storage_dir_emulator';
 
 describe('BasicCrawler', () => {
     let logLevel: number;
@@ -263,7 +263,7 @@ describe('BasicCrawler', () => {
 
     test('should require at least one of RequestQueue and RequestList', () => {
         const requestList = new RequestList({ sources: [] });
-        const requestQueue = new RequestQueue({ id: 'xxx', client: Configuration.getDefaultClient() });
+        const requestQueue = new RequestQueue({ id: 'xxx', client: Configuration.getStorageClient() });
         const handleRequestFunction = async () => {};
 
         expect(() => new BasicCrawler({ handleRequestFunction })).toThrowError();
@@ -280,7 +280,7 @@ describe('BasicCrawler', () => {
         ];
         const processed: Dictionary<Request> = {};
         const requestList = new RequestList({ sources });
-        const requestQueue = new RequestQueue({ id: 'xxx', client: Configuration.getDefaultClient() });
+        const requestQueue = new RequestQueue({ id: 'xxx', client: Configuration.getStorageClient() });
 
         const handleRequestFunction: HandleRequest = async ({ request }) => {
             await sleep(10);
@@ -399,7 +399,7 @@ describe('BasicCrawler', () => {
     });
 
     test('should say that task is not ready requestList is not set and requestQueue is empty', async () => {
-        const requestQueue = new RequestQueue({ id: 'xxx', client: Configuration.getDefaultClient() });
+        const requestQueue = new RequestQueue({ id: 'xxx', client: Configuration.getStorageClient() });
         requestQueue.isEmpty = () => Promise.resolve(true);
 
         const crawler = new BasicCrawler({
@@ -412,7 +412,7 @@ describe('BasicCrawler', () => {
     });
 
     test('should be possible to override isFinishedFunction of underlying AutoscaledPool', async () => {
-        const requestQueue = new RequestQueue({ id: 'xxx', client: Configuration.getDefaultClient() });
+        const requestQueue = new RequestQueue({ id: 'xxx', client: Configuration.getStorageClient() });
         const processed: Request[] = [];
         const queue: Request[] = [];
         let isFinished = false;
@@ -513,7 +513,7 @@ describe('BasicCrawler', () => {
     });
 
     test('should load handledRequestCount from storages', async () => {
-        const requestQueue = new RequestQueue({ id: 'id', client: Configuration.getDefaultClient() });
+        const requestQueue = new RequestQueue({ id: 'id', client: Configuration.getStorageClient() });
         requestQueue.isEmpty = async () => false;
         requestQueue.isFinished = async () => false;
 

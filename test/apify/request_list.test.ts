@@ -1,7 +1,7 @@
 import { shuffle } from 'underscore';
 import { KeyValueStore, RequestList, ACTOR_EVENT_NAMES_EX, deserializeArray, Request, sleep, events, requestUtils } from '@crawlers/core';
 import log from '@apify/log';
-import LocalStorageDirEmulator from './local_storage_dir_emulator';
+import { LocalStorageDirEmulator } from './local_storage_dir_emulator';
 
 describe('RequestList', () => {
     let ll: number;

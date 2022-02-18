@@ -5,7 +5,7 @@ import { Configuration, Dictionary, KeyValueStore, launchPuppeteer, puppeteerUti
 import { Browser, Page, ResponseForRequest } from 'puppeteer';
 import { Server } from 'http';
 import { AddressInfo } from 'net';
-import LocalStorageDirEmulator from './local_storage_dir_emulator';
+import { LocalStorageDirEmulator } from './local_storage_dir_emulator';
 import { startExpressAppPromise } from './_helper';
 
 const HOSTNAME = '127.0.0.1';

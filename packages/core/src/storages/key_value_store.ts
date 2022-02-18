@@ -1,12 +1,11 @@
 import { ENV_VARS, KEY_VALUE_STORE_KEYS, KEY_VALUE_STORE_KEY_REGEX } from '@apify/consts';
 import { jsonStringifyExtended } from '@apify/utilities';
 import ow, { ArgumentError } from 'ow';
-import { ApifyClient, KeyValueStoreClient } from 'apify-client';
-import { ApifyStorageLocal } from '@crawlers/storage';
 import { StorageManager, StorageManagerOptions } from './storage_manager';
 import { Configuration } from '../configuration';
 import { APIFY_API_BASE_URL } from '../constants';
 import { Awaitable, Dictionary } from '../typedefs';
+import { KeyValueStoreClient, StorageClient } from './storage';
 
 export type KeyValueStoreValueTypes = Record<string, unknown> | null | Buffer | string;
 
@@ -109,7 +108,6 @@ export const maybeStringify = <T>(value: T, options: { contentType?: string }) =
 export class KeyValueStore {
     readonly id: string;
     readonly name?: string;
-    readonly isLocal: boolean;
     private client: KeyValueStoreClient;
 
     /**
@@ -118,8 +116,7 @@ export class KeyValueStore {
     constructor(options: KeyValueStoreOptions, readonly config = Configuration.getGlobalConfig()) {
         this.id = options.id;
         this.name = options.name;
-        this.isLocal = options.isLocal ?? false;
-        this.client = options.client.keyValueStore(this.id) as KeyValueStoreClient;
+        this.client = options.client.keyValueStore(this.id);
     }
 
     /**
@@ -307,12 +304,11 @@ export class KeyValueStore {
     static async open(storeIdOrName?: string | null, options: StorageManagerOptions = {}): Promise<KeyValueStore> {
         ow(storeIdOrName, ow.optional.string);
         ow(options, ow.object.exactShape({
-            forceCloud: ow.optional.boolean,
             config: ow.optional.object.instanceOf(Configuration),
         }));
 
         const manager = new StorageManager(KeyValueStore, options.config);
-        return manager.openStorage(storeIdOrName, options);
+        return manager.openStorage(storeIdOrName);
     }
 }
 
@@ -453,8 +449,7 @@ export interface KeyConsumer {
 export interface KeyValueStoreOptions {
     id: string;
     name?: string;
-    client: ApifyClient | ApifyStorageLocal;
-    isLocal?: boolean;
+    client: StorageClient;
 }
 
 export interface RecordOptions {
